@@ -40,7 +40,8 @@ bootstrapScript: |
   rm -rf /var/lib/apt/lists/* && \
   pip install \
     psycopg2-binary==2.9.1 \
-    redis==3.5.3 && \
+    redis==3.5.3 \
+    pymssql==2.1.5 && \
   if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid {{ .Values.runAsUser }}" > ~/bootstrap; fi
 
 # -- The name of the secret which we will use to generate a superset_config.py file
@@ -224,19 +225,18 @@ ingress:
   #      - chart-example.local
 
 resources:
-  {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # The limits below will apply to all Superset components. To set individual resource limitations refer to the pod specific values below.
   # The pod specific values will overwrite anything that is set here.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 500m
+    memory: 512Mi
 
 # -- Custom hostAliases for all superset pods
 ## https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
@@ -719,6 +719,15 @@ postgresql:
 
   ## PostgreSQL Primary parameters
   primary:
+    tolerations:
+      - key: availability
+        operator: Equal
+        value: spot
+        effect: NoExecute
+      - key: workload
+        operator: Equal
+        value: svc
+        effect: NoExecute
     ##
     ## Persistent Volume Storage configuration.
     ## ref: https://kubernetes.io/docs/user-guide/persistent-volumes
@@ -769,6 +778,15 @@ redis:
   ## Master configuration
   ##
   master:
+    tolerations:
+      - key: availability
+        operator: Equal
+        value: spot
+        effect: NoExecute
+      - key: workload
+        operator: Equal
+        value: svc
+        effect: NoExecute
     ##
     ## Image configuration
     # image:
@@ -791,7 +809,15 @@ redis:
 
 nodeSelector: {}
 
-tolerations: []
+tolerations:
+  - key: availability
+    operator: Equal
+    value: spot
+    effect: NoExecute
+  - key: workload
+    operator: Equal
+    value: svc
+    effect: NoExecute
 
 affinity: {}
 

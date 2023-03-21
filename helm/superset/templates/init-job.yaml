@@ -100,4 +100,13 @@ spec:
         {{- tpl (toYaml .) $ | nindent 8 -}}
         {{- end }}
       restartPolicy: Never
+      tolerations:
+        - key: availability
+          operator: Equal
+          value: spot
+          effect: NoExecute
+        - key: workload
+          operator: Equal
+          value: svc
+          effect: NoExecute
 {{- end }}
